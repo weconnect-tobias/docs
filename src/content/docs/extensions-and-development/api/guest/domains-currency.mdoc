@@ -146,7 +146,7 @@ A registered domain does **not** return `false`. It returns an error instead:
 Registrar modules may return their own error messages when the registry cannot be
 reached, for example `Domain availability check failed. Please try again later.`
 
-{% aside type="caution" title="All errors use code 9999, except registration" %}
+{% aside type="caution" title="All Errors Use Code 9999, Except Registration" %}
 Every error above, including `Domain is not available.`, is returned with
 `code: 9999` and HTTP 200 — with one exception: `Domain cannot be registered.`
 uses `code: 403` and HTTP `403`. Your integration cannot tell a taken domain from a
@@ -154,7 +154,7 @@ configuration or registry error by the code alone. Compare the message, or
 treat any error as "not available" and log it.
 {% /aside %}
 
-{% aside type="caution" title="Rate limited" %}
+{% aside type="caution" title="Rate Limited" %}
 This endpoint is rate limited per client IP (`domain_lookup_ip` limiter).
 Server-side integrations that proxy many visitors through a single IP should
 cache results or throttle requests.
@@ -252,7 +252,7 @@ curl -s -X POST https://example.com/api/guest/currency/format \
 |-----------------------|-------|
 | `Currency not found.` | Unknown currency code, or no default currency is set. |
 
-## Example: building a public price list
+## Example: Building a Public Price List
 
 ```bash
 # 1. Fetch all TLDs that can be registered

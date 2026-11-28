@@ -18,7 +18,7 @@ Prices are returned as numbers in the system's **default currency**. Use
 to convert and format them for display.
 {% /aside %}
 
-## Visibility rules
+## Visibility Rules
 
 Guest endpoints only return products a visitor is allowed to see, but the
 endpoints do not all apply the same rules:
@@ -34,13 +34,13 @@ endpoints do not all apply the same rules:
 Hidden products can still be fetched by ID or slug with `product/get`. This
 lets you link directly to a product that is not shown in the public catalog.
 
-## Product types
+## Product Types
 
 The `type` field is one of the installed product types. Common values include:
 `custom`, `license`, `domain`, `downloadable`, `hosting`, `vps`, `apikey`.
 The exact set depends on which service modules are installed.
 
-## Pricing format
+## Pricing Format
 
 Every product (and every addon) includes a `pricing` object. Its `type` field
 says which of the other keys applies:
@@ -77,7 +77,7 @@ price, or `0` for free products), and is useful for "from X/month" labels.
 It does not include setup fees. It is `null` for recurrent products with no
 enabled periods.
 
-### Domain products
+### Domain Products
 
 Products of type `domain` use a different `pricing` format: an object keyed by
 TLD, with the same price fields as
@@ -235,7 +235,7 @@ This endpoint filters on the product's _active_ flag only. Unlike `get_list`,
 it also returns hidden products.
 {% /aside %}
 
-## Product categories
+## Product Categories
 
 ### `guest/product/category_get_list`
 
@@ -358,7 +358,7 @@ two cases apart.
 | `Product not found`       | No product exists with that ID.                             |
 | `Product type is invalid` | The product exists but is not of type `hosting`.           |
 
-## Example: building a public price list
+## Example: Building a Public Price List
 
 ```bash
 # All visible categories with their products and prices, in one call
