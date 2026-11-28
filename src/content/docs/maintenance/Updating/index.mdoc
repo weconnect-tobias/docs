@@ -12,7 +12,7 @@ tableOfContents: false
 {% /aside %}
 
 {% aside type="caution" %}
-**Review version-specific notes.** Releases can include breaking changes to themes, templates, APIs, and configuration, including patch releases such as 0.8.9. Read the upgrade guide for your target version **before** updating, especially if you use custom themes or modules.
+**Review version-specific notes.** Even patch releases can include breaking changes to themes, templates, APIs, and configuration. Read the upgrade guide for your target version **before** updating, especially if you use custom themes or modules.
 {% /aside %}
 
 ## Automatic Updates (Recommended)
@@ -21,7 +21,7 @@ For most installations, the built-in updater is the easiest option:
 
 {% steps %}
 1. Log in to your admin panel
-2. Go to **System** → **Update**
+2. Go to **System → Update**
 3. Click to install the update
 {% /steps %}
 
@@ -36,6 +36,12 @@ Starting with 0.8.1, updates follow a two-phase process:
 
 This prevents older versions from automatically applying database patches before the new code is in place.
 
+If you cannot access the admin panel after installing the new files, run the patcher from your FOSSBilling installation directory. Run it as the same system user that runs FOSSBilling’s web PHP process, with a PHP CLI binary that matches the site’s PHP version.
+
+```bash
+php console.php system:run-patcher
+```
+
 The updater follows the configured update branch, usually `release` or `preview`, which you can change in your [configuration file](/admin-guide/config/).
 
 ## Manual Updates
@@ -47,12 +53,16 @@ If you prefer to manage files yourself:
 2. [Download the latest release](https://fossbilling.org/downloads/stable)
 3. Extract the files over your existing installation (overwrite existing files)
 4. Delete the `install` folder that came with the new files
-5. Log in to the admin panel and follow the finalization prompt to apply pending patches
+5. Log in to the admin panel and [finalize the update](#update-finalization)
 {% /steps %}
 
-FOSSBilling will detect the new files and direct you to the finalization page. If you navigated away, go to **System** → **Update** and use **Apply Patches & Update Configuration**.
-
 If an update fails or FOSSBilling errors after updating, see [Troubleshooting FOSSBilling Issues](/maintenance/troubleshooting/#errors-after-updating).
+
+## Docker Updates
+
+The [Docker installation examples](/getting-started/docker/) store FOSSBilling in a named volume mounted at `/var/www/html`. A replacement container mounts that same volume over the application files bundled in the new image.
+
+Pull a newer image and recreate the container to refresh PHP and Apache. Use the [built-in updater](#automatic-updates-recommended) to update FOSSBilling in the volume, then [finalize the update](#update-finalization) when prompted.
 
 ## Version-Specific Upgrade Notes
 
@@ -62,6 +72,6 @@ Some releases need extra review before updating.
   {% linkcard
     title="Upgrading from 0.7.x to 0.8.x"
     href="/maintenance/updating/0-7-to-0-8/"
-    description="PHP 8.3, theme and API migrations, and version-specific compatibility notes through 0.8.9."
+    description="Check PHP requirements, theme and API migrations, and release-specific compatibility notes."
   /%}
 {% /cardgrid %}

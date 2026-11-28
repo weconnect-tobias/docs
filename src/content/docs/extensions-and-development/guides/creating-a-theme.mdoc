@@ -56,30 +56,9 @@ FOSSBilling loads templates in this order (highest priority first):
 
 ## API URLs and CSRF
 
-Use `api_url` to build browser API URLs and `fb_api_form` or `fb_api_link` to let the [JavaScript API wrapper](/extensions-and-development/api/javascript/) handle submissions.
+Use `api_url` to build the endpoint and `fb_api_form()` or `fb_api_link()` to handle submissions through the wrapper. See [API Forms and Links](/extensions-and-development/api/javascript/#api-forms-and-links) for examples.
 
-```twig
-<form action="{{ 'profile/update'|api_url }}" {{ fb_api_form({ message: 'Profile updated'|trans }) }}>
-  <input type="text" name="first_name" value="{{ profile.first_name }}">
-  <button type="submit">{{ 'Save'|trans }}</button>
-</form>
-```
-
-For links that trigger API actions:
-
-```twig
-<a href="{{ 'client/group_delete'|api_url(query: { id: group.id }, role: 'admin') }}"
-   {{ fb_api_link({
-     modal: { type: 'confirm', title: 'Are you sure?'|trans },
-     reload: true
-   }) }}>
-  {{ 'Delete'|trans }}
-</a>
-```
-
-Session-authenticated `client` and `admin` browser API calls require CSRF protection. Guest client login/signup, staff login, and cart mutations require a session-bound token too, and reject cross-origin browser requests. The [JavaScript API wrapper](/extensions-and-development/api/javascript/) reads the `fossbilling_csrf` cookie and sends the token automatically on same-origin requests. Guest authentication requires POST.
-
-Use `role: 'guest'` for public actions such as login, signup, and password reset:
+Use `role: 'guest'` for public actions such as login, signup, and password reset. Login and signup forms submit the current session’s CSRF token via POST. See [Guest Authentication and Cart Calls](/extensions-and-development/api/#guest-authentication-and-cart-calls) for the full request requirements.
 
 ```twig
 <form action="{{ 'client/login'|api_url(role: 'guest') }}" {{ fb_api_form({ redirect: '/'|url }) }}>
@@ -94,51 +73,27 @@ Theme settings forms submit to the admin `/theme/{theme}` route using POST. Incl
 
 ## Server-Side API Globals
 
-The `guest`, `client`, and `admin` Twig globals call FOSSBilling APIs during server-side template rendering. They are not browser HTTP requests and do not use CSRF tokens.
+Twig templates can call FOSSBilling APIs directly during server-side rendering. These calls do not require a CSRF token. Use `guest` for public calls and `client` or `admin` for the corresponding signed-in user.
 
-### Guest API (always available)
+This example renders the currency codes and names returned by the guest API.
 
-```twig
-{{ guest.currency_get_pairs() }}
-```
-
-### Client API (when logged in)
-
-```twig
-{{ client.invoice_get_list({ 'per_page': 10 }) }}
-```
-
-### Admin API (when logged in)
-
-```twig
-{{ admin.staff_group_get_pairs() }}
-{{ admin.extension_config_get({ 'ext': 'mod_seo' }) }}
+```twig {% process=false %}
+<ul>
+  {% for code, name in guest.currency_get_pairs() %}
+    <li>{{ name }} ({{ code }})</li>
+  {% endfor %}
+</ul>
 ```
 
 ## Twig Filters and Functions
 
-FOSSBilling provides [custom filters](/extensions-and-development/twig-filters/) for themes:
+See [Twig Filters & Functions](/extensions-and-development/twig-filters/) for theme helpers and examples.
 
-```twig
-{{ price | format_currency(currency.code) }} {# Format currency #}
-{{ 'client/manage' | url(area: 'admin') }}   {# Admin panel link #}
-{{ 'css/theme.css' | asset_url }}            {# Theme asset URL #}
-{{ 'js/api.js' | public_asset_url }}         {# Shared core asset URL #}
-{{ date | timeago }}                         {# "2 hours ago" #}
-{{ content | markdown_to_html }}             {# Parse Markdown #}
-```
-
-Custom layouts that do not extend the bundled themes should load the shared runtime and API wrapper before theme JavaScript:
-
-```twig
-{{ 'js/fossbilling.js'|public_asset_url|script_tag }}
-{{ 'js/api.js'|public_asset_url|script_tag }}
-<script src="{{ 'build/js/mytheme.js'|asset_url }}"></script>
-```
+If your layout does not extend a bundled theme, follow the [wrapper setup instructions](/extensions-and-development/api/javascript/#importing-the-wrapper) to load the shared scripts before your theme JavaScript.
 
 ## Security Best Practices
 
-- Use `htmlspecialchars` when outputting user data
+- Keep Twig's automatic HTML escaping enabled for user data. Use the appropriate [`escape` strategy](https://twig.symfony.com/doc/3.x/filters/escape.html) for other output contexts.
 - Validate all inputs
 - Use `fb_api_form` and `fb_api_link` for browser API actions
 - Include CSRF tokens manually for raw requests that do not use the wrapper

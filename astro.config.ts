@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import markdoc from '@astrojs/markdoc';
 import { cloudflare } from '@cloudflare/vite-plugin';
+import markdocContentPathContainment from './src/integrations/markdoc-partials.ts';
 
 // https://astro.build/config
 export default defineConfig({
@@ -39,20 +40,16 @@ export default defineConfig({
       },
       customCss: ['./src/styles/fossbilling.css'],
       components: {
-        Header: './src/components/starlight/Header.astro',
+        SiteTitle: './src/components/starlight/SiteTitle.astro',
       },
       tableOfContents: {
-        minHeadingLevel: 2,
         maxHeadingLevel: 4,
       },
       editLink: {
         baseUrl: 'https://github.com/FOSSBilling/docs/edit/main/',
       },
       sidebar: [
-        {
-          label: 'Introduction',
-          slug: '',
-        },
+        'index',
         {
           label: 'Getting Started',
           items: [{ autogenerate: { directory: 'getting-started' } }],
@@ -68,30 +65,18 @@ export default defineConfig({
               label: 'Configuration',
               slug: 'admin-guide/config',
             },
-            {
-              label: 'Company Information',
-              slug: 'admin-guide/company',
-            },
-            {
-              label: 'Email Templates',
-              slug: 'admin-guide/email-templates',
-            },
+            'admin-guide/company',
+            'admin-guide/email-templates',
             {
               label: 'Anti-Spam',
               slug: 'admin-guide/anti-spam',
             },
-            {
-              label: 'Localization',
-              slug: 'admin-guide/localization',
-            },
+            'admin-guide/localization',
             {
               label: 'Invoice PDFs',
               slug: 'admin-guide/invoice-pdf',
             },
-            {
-              label: 'Custom Payment Gateway',
-              slug: 'admin-guide/custom-payment-gateway',
-            },
+            'admin-guide/custom-payment-gateway',
             {
               label: 'Product Types',
               collapsed: true,
@@ -154,14 +139,8 @@ export default defineConfig({
                 },
               ],
             },
-            {
-              label: 'Event Hooks',
-              slug: 'extensions-and-development/event-hooks',
-            },
-            {
-              label: 'Twig Filters & Functions',
-              slug: 'extensions-and-development/twig-filters',
-            },
+            'extensions-and-development/event-hooks',
+            'extensions-and-development/twig-filters',
             {
               label: 'File Structure',
               slug: 'extensions-and-development/file-structure',
@@ -197,11 +176,15 @@ export default defineConfig({
         },
       ],
       lastUpdated: true,
-      pagination: true,
     }),
     markdoc(),
   ],
   vite: {
-    plugins: [cloudflare()],
+    plugins: [
+      markdocContentPathContainment(
+        new URL('./src/content/docs/', import.meta.url),
+      ),
+      cloudflare(),
+    ],
   },
 });

@@ -24,23 +24,14 @@ Three main entrypoints:
 - **Method:** Core API routes generally accept GET and POST. Guest client login/signup and staff login require POST. Use POST for mutations and requests with a JSON body or form data.
 - **Format:** JSON responses. POST requests may send JSON or form data.
 - **Naming:** Lowercase with underscores (`change_password`)
-- **Nulls:** Blank fields are included as `null`, not omitted
-- **Dates:** [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format
+
+Date formats and the handling of omitted, empty, or `null` values depend on the endpoint. Check the handler in the [module's `Api/` directory](/extensions-and-development/file-structure/#srcmodules).
 
 ## Authentication
 
-Use HTTP Basic Auth with base64 encoding:
+Use HTTP Basic authentication over HTTPS. Set the username to `admin` or `client` according to the endpoint and use the corresponding API key as the password. Find your key in your staff or client profile.
 
-- **Username:** `admin` or `client` (depending on endpoint)
-- **Password:** Your API key (found in client profile or admin dashboard)
-
-```http
-Authorization: Basic base64_encode('admin:YOUR_API_KEY')
-```
-
-Most HTTP clients (curl, Postman) handle the encoding automatically.
-
-Browser requests from an active client or admin session use the session cookie instead. Those requests must include a valid CSRF token.
+Keep integration API keys on the server. Browser requests from an active client or admin session use the session cookie and a valid CSRF token.
 
 ## CSRF Tokens
 
@@ -65,16 +56,9 @@ These checks apply even when `api.CSRFPrevention` is disabled. A supplied `Origi
 
 Other guest calls are not subject to this authentication/cart CSRF check. See the [migration guide](/maintenance/updating/0-7-to-0-8/#authentication-api--payment-hardening-089) for migration details.
 
-Use Twig helpers for theme and module templates. This way, you don't need to manually attach CSRF tokens to the requests:
+### Manual Browser Requests
 
-```twig
-<form action="{{ 'profile/update'|api_url }}" {{ fb_api_form({ message: 'Saved'|trans }) }}>
-  <input type="text" name="first_name">
-  <button type="submit">{{ 'Save'|trans }}</button>
-</form>
-```
-
-For raw `fetch()` requests, send the token yourself:
+Use the [Twig form and link helpers](/extensions-and-development/api/javascript/#api-forms-and-links) for theme and module templates. For protected requests made directly with `fetch()`, send the current session’s CSRF token.
 
 ```javascript
 const token = document.cookie.match(/fossbilling_csrf=([^;]*)/)?.[1] || '';
@@ -91,86 +75,27 @@ fetch('/api/client/profile/update', {
 
 ## Example Requests
 
-{% tabs %}
-{% tabitem label="curl" %}
+To list products, replace the hostname with your FOSSBilling host. When cURL prompts for a password, enter the API key of a staff account with permission to view products.
+
 ```bash
-curl -X POST "https://example.com/api/admin/staff/create" \
-  -H "Authorization: Basic $(echo -n 'admin:YOUR_API_KEY' | base64)" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "hello@fossbilling.org",
-    "password": "Testing123+",
-    "name": "John Doe",
-    "admin_group_id": 1,
-    "status": "active"
-  }'
+curl --user admin 'https://billing.example.com/api/admin/product/get_list'
 ```
-{% /tabitem %}
-{% tabitem label="Python" %}
-```python
-import requests
-from requests.auth import HTTPBasicAuth
-
-url = "https://example.com/api/admin/staff/create"
-api_key = "YOUR_API_KEY"
-
-payload = {
-    "email": "hello@fossbilling.org",
-    "password": "Testing123+",
-    "name": "John Doe",
-    "admin_group_id": 1,
-    "status": "active"
-}
-
-auth = HTTPBasicAuth('admin', api_key)
-headers = {"Content-Type": "application/json"}
-
-response = requests.post(url, json=payload, auth=auth)
-print(response.json())
-```
-{% /tabitem %}
-{% tabitem label="Node.js" %}
-Run admin API calls from trusted server-side code only. Never expose an admin API key in browser JavaScript.
-
-```javascript
-const url = "https://example.com/api/admin/staff/create";
-const apiKey = "YOUR_API_KEY";
-
-const payload = {
-  email: "hello@fossbilling.org",
-  password: "Testing123+",
-  name: "John Doe",
-  admin_group_id: 1,
-  status: "active"
-};
-
-const headers = new Headers();
-headers.set("Content-Type", "application/json");
-headers.set("Authorization", "Basic " + Buffer.from("admin:" + apiKey).toString("base64"));
-
-fetch(url, {
-  method: "POST",
-  headers: headers,
-  body: JSON.stringify(payload)
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error("Error:", error));
-```
-{% /tabitem %}
-{% /tabs %}
 
 ## Response Format
 
-**Success:**
+A successful `/api/guest/currency/get_pairs` response can look like this.
+
 ```json
 {
-  "result": { ... },
+  "result": {
+    "USD": "US Dollar"
+  },
   "error": null
 }
 ```
 
-**Error:**
+An error response includes an application code and message.
+
 ```json
 {
   "result": null,
