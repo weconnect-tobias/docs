@@ -3,4 +3,5 @@
 
 # Redirects for restructured API docs (see PR #106).
 # The JavaScript Wrapper moved under the API section.
+/extensions-and-development/javascript /extensions-and-development/api/javascript/ 301
 /extensions-and-development/javascript/* /extensions-and-development/api/javascript/:splat 301
